@@ -1,9 +1,22 @@
 from zeep import Client
 
+# Connecting via SOAP (Zeep in python) to the server
+# client = None
+# while True:
+#     print("Welcome to the admin terminal.")
+#     print("Are you connecting to a local or remote host?")
+#     print("(LOCAL/REMOTE)")
+#     answer = input("> ")
+#     if answer.upper() == "LOCAL":
+#         client = Client('http://localhost:58008/hangman_remote?WSDL')
+#         break
+#     elif answer.upper() == "REMOTE":
+#         client = Client('http://localhost:58008/hangman_remote?WSDL')
+#         break
 
-# client = Client('http://localhost:58008/hangman_remote?WSDL')
-# asd = client.service.informConnect()
-# print(asd)
+# if client is None:
+#     print("Connection failed!")
+#     exit(-1)
 
 def fridgeMenu():
     while True:
@@ -121,4 +134,4 @@ def mainMenu():
             print("Unrecognized input.")
 
 
-mainMenu()
+mainMenu() # The call starting this program
