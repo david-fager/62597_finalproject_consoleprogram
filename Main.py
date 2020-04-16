@@ -105,6 +105,7 @@ def mainMenu():
         print("#              > 1 MANAGE FRIDGES                #")
         print("#              > 2 MANAGE FOOD ITEMS             #")
         print("#              > 3 MANAGE FOOD TYPES             #")
+        print("#              > 4 EXIT PROGRAM                  #")
         print("#                                                #")
         print("##################################################")
         selection = input("> ")
@@ -114,6 +115,8 @@ def mainMenu():
             itemMenu()
         elif selection == "3":
             typeMenu()
+        elif selection == "4":
+            exit(0)
         else:
             print("Unrecognized input.")
 
