@@ -3,27 +3,38 @@ from prettytable import PrettyTable
 
 # Connecting via SOAP (Zeep in python) to the server
 client = None
+wsdl_local = "http://localhost:58008/my_fridge_soap_remote?WSDL"
+wsdl_remote = "http://dist.saluton.dk:58008/my_fridge_soap_remote?WSDL"
+connected_wsdl = None
 while True:
     print("Welcome to the admin terminal.")
     print("Are you connecting to a local or remote host?")
     print("(LOCAL/REMOTE)")
-    answer = input("> ")
-    if answer.upper() == "LOCAL":
+    connection_type = input("> ")
+    if connection_type.upper() == "LOCAL":
         try:
-            client = Client('http://localhost:58008/my_fridge_soap_remote?WSDL')
+            client = Client(wsdl_local)
         except:
-            print("Local host connection failed\n")
+            print("Local host connection failed")
+            print("Check if you can connect to the WSDL:")
+            print(wsdl_local)
+            print("Otherwise, check if the database program is running\n")
         else:
             print("Local host connection successful")
+            connected_wsdl = wsdl_local
             break
 
-    elif answer.upper() == "REMOTE":
+    elif connection_type.upper() == "REMOTE":
         try:
-            client = Client('http://dist.saluton.dk:58008/my_fridge_soap_remote?WSDL')
+            client = Client(wsdl_remote)
         except:
-            print("Remote host connection failed\n")
+            print("Remote host connection failed")
+            print("Check if you can connect to the WSDL:")
+            print(wsdl_remote)
+            print("Otherwise, it might be a server side error\n")
         else:
             print("Remote host connection successful")
+            connected_wsdl = wsdl_remote
             break
 
     else:
@@ -32,7 +43,7 @@ while True:
 
 def tablify_list(list):
     if str(list) == "[]" or str(list) == "":
-        print("Table is empty.")
+        print("Table is empty. See: " + str(list))
         return
 
     pt = PrettyTable(list[0].item)
@@ -41,7 +52,16 @@ def tablify_list(list):
     print(pt)
 
 
-def delete_table_element(table, delete_id):
+def assess_success(success, action, table):
+    if success:
+        print("Success " + action + " " + table)
+    elif not success:
+        print("Fail " + action + " " + table)
+    else:
+        print("Server sent no response on action")
+
+
+def delete_table_element(delete_id, table):
     table = str(table).upper()
     success = None
     if table == "USER":
@@ -65,6 +85,7 @@ def delete_table_element(table, delete_id):
 def user_menu():
     while True:
         print("")
+        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#              USER MANAGEMENT MENU              #")
@@ -102,6 +123,7 @@ def user_menu():
 def fridge_menu():
     while True:
         print("")
+        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#             FRIDGE MANAGEMENT MENU             #")
@@ -110,7 +132,7 @@ def fridge_menu():
         print("#              > 2% ADD FRIDGE ITEM              #")
         print("#              > 3 LIST FRIDGE ITEMS             #")
         print("#              > 4% UPDATE FRIDGE ITEM           #")
-        print("#              > 5 DELETE FRIDGE ITEM           #")
+        print("#              > 5 DELETE FRIDGE ITEM            #")
         print("#              > B BACK                          #")
         print("#                                                #")
         print("##################################################")
@@ -137,7 +159,7 @@ def fridge_menu():
         elif selection == "5":
 
             print("Provide the ID of the fridge you wish to delete")
-            delete_table_element("item", input("ID: "))
+            delete_table_element(input("ID: "), "fridge")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -149,14 +171,15 @@ def fridge_menu():
 def item_menu():
     while True:
         print("")
+        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#            FOOD ITEM MANAGEMENT MENU           #")
         print("#                                                #")
         print("#              > 1 ADD FOOD ITEM                 #")
         print("#              > 2 LIST FOOD ITEMS               #")
-        print("#              > 3% UPDATE FOOD ITEM             #")
-        print("#              > 4 DELETE FOOD ITEM             #")
+        print("#              > 3 UPDATE FOOD ITEM              #")
+        print("#              > 4 DELETE FOOD ITEM              #")
         print("#              > B BACK                          #")
         print("#                                                #")
         print("##################################################")
@@ -166,23 +189,19 @@ def item_menu():
             print("Provide new food item information (Type 'D' to discard)")
             new_item_id = input("ID: ")
             if new_item_id.upper() == 'D':
-                print("Discarding new type")
+                print("Discarding new item")
                 continue
             new_item_name = input("Name: ")
             if new_item_name.upper() == 'D':
-                print("Discarding new type")
+                print("Discarding new item")
                 continue
             new_item_type_key = input("Type Key (ID): ")
             if new_item_type_key.upper() == 'D':
-                print("Discarding new type")
+                print("Discarding new item")
                 continue
 
-            success = client.service.createItem(new_item_id, new_item_name, new_item_type_key)
-            if success:
-                print("Successfully created new type")
-            elif not success:
-                print("Failed creating new type")
-
+            assess_success(client.service.createItem(new_item_id, new_item_name, new_item_type_key),
+                           "creating new", "item")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
@@ -192,12 +211,32 @@ def item_menu():
 
         elif selection == "3":
 
-            print("Selected: 3")
+            print("Provide updated food item information (Type 'D' to discard)")
+            update_item_id = input("The item's current ID: ")
+            if update_item_id.upper() == 'D':
+                print("Discarding item update")
+                continue
+            update_item_name = input("New name for the item: ")
+            if update_item_name.upper() == 'D':
+                print("Discarding item update")
+                continue
+            update_type_id = input("New type ID for the item: ")
+            if update_type_id.upper() == 'D':
+                print("Discarding item update")
+                continue
+            update_item_new_id = input("New ID for the item: ")
+            if update_item_new_id.upper() == 'D':
+                print("Discarding item update")
+                continue
+
+            assess_success(client.service.updateItem(update_item_id, update_item_name, update_type_id,
+                                                     update_item_new_id), "updating", "item")
+            input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
 
             print("Provide the ID of the item you wish to delete")
-            delete_table_element("item", input("ID: "))
+            delete_table_element(input("ID: "), "item")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -209,6 +248,7 @@ def item_menu():
 def type_menu():
     while True:
         print("")
+        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#            FOOD TYPE MANAGEMENT MENU           #")
@@ -237,12 +277,7 @@ def type_menu():
                 print("Discarding new type")
                 continue
 
-            success = client.service.createType(new_type_id, new_type_name, new_type_keep)
-            if success:
-                print("Successfully created new type")
-            else:
-                print("Failed creating new type")
-
+            assess_success(client.service.createType(new_type_id, new_type_name, new_type_keep), "creating new", "type")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
@@ -255,33 +290,29 @@ def type_menu():
             print("Provide updated food type information (Type 'D' to discard)")
             update_type_id = input("The type's current ID: ")
             if update_type_id.upper() == 'D':
-                print("Discarding new type")
+                print("Discarding type update")
                 continue
             update_type_name = input("New name for the type: ")
             if update_type_name.upper() == 'D':
-                print("Discarding new type")
+                print("Discarding type update")
                 continue
             update_type_keep = input("New keep (d) for the type: ")
             if update_type_keep.upper() == 'D':
-                print("Discarding new type")
+                print("Discarding type update")
                 continue
             update_type_new_id = input("New ID for the type: ")
             if update_type_new_id.upper() == 'D':
-                print("Discarding new type")
+                print("Discarding type update")
                 continue
 
-            success = client.service.createType(update_type_id, update_type_name, update_type_keep, update_type_new_id)
-            if success:
-                pass  # print("Successfully created new type")
-            else:
-                pass  # print("Failed creating new type")
-
+            assess_success(client.service.createType(update_type_id, update_type_name, update_type_keep,
+                                                     update_type_new_id), "updating", "type")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
 
             print("Provide the ID of the type you wish to delete")
-            delete_table_element("type", input("ID: "))
+            delete_table_element(input("ID: "), "type")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -293,13 +324,14 @@ def type_menu():
 def main_menu():
     while True:
         print("")
+        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#                   ADMIN MENU                   #")
         print("#                                                #")
-        print("#              > 1% MANAGE USERS                 #")
-        print("#              > 2% MANAGE FRIDGES               #")
-        print("#              > 3% MANAGE FOOD ITEMS            #")
+        print("#              > 1 MANAGE USERS                  #")
+        print("#              > 2 MANAGE FRIDGES                #")
+        print("#              > 3 MANAGE FOOD ITEMS             #")
         print("#              > 4 MANAGE FOOD TYPES             #")
         print("#              > E EXIT                          #")
         print("#                                                #")
