@@ -31,10 +31,35 @@ while True:
 
 
 def tablify_list(list):
+    if str(list) == "[]" or str(list) == "":
+        print("Table is empty.")
+        return
+
     pt = PrettyTable(list[0].item)
     for element in list[1:]:
         pt.add_row(element.item)
     print(pt)
+
+
+def delete_table_element(table, delete_id):
+    table = str(table).upper()
+    success = None
+    if table == "USER":
+        success = client.service.deleteUser(delete_id)
+    elif table == "FRIDGE":
+        success = client.service.deleteFridge(delete_id)
+    elif table == "ITEM":
+        success = client.service.deleteItem(delete_id)
+    elif table == "TYPE":
+        success = client.service.deleteType(delete_id)
+    else:
+        print("Unrecognized table")
+        return
+
+    if success:
+        print("Successfully deleted " + table + " with ID: " + delete_id)
+    elif not success:
+        print("Failed deleting item with ID: " + delete_id)
 
 
 def user_menu():
@@ -85,7 +110,7 @@ def fridge_menu():
         print("#              > 2% ADD FRIDGE ITEM              #")
         print("#              > 3 LIST FRIDGE ITEMS             #")
         print("#              > 4% UPDATE FRIDGE ITEM           #")
-        print("#              > 5% DELETE FRIDGE ITEM           #")
+        print("#              > 5 DELETE FRIDGE ITEM           #")
         print("#              > B BACK                          #")
         print("#                                                #")
         print("##################################################")
@@ -96,18 +121,25 @@ def fridge_menu():
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
+
             print("Selected: 2")
+
         elif selection == "3":
 
-            fridgeID = input("Fridge ID: ")
-
-            tablify_list(client.service.getFridge(fridgeID))
+            print("Provide the ID of the fridge to list items for")
+            tablify_list(client.service.getFridge(input("Fridge ID: ")))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
+
             print("Selected: 4")
+
         elif selection == "5":
-            print("Selected: 5")
+
+            print("Provide the ID of the fridge you wish to delete")
+            delete_table_element("item", input("ID: "))
+            input("\nPRESS ENTER TO CONTINUE")
+
         elif selection.upper() == "B":
             break
         else:
@@ -124,7 +156,7 @@ def item_menu():
         print("#              > 1 ADD FOOD ITEM                 #")
         print("#              > 2 LIST FOOD ITEMS               #")
         print("#              > 3% UPDATE FOOD ITEM             #")
-        print("#              > 4% DELETE FOOD ITEM             #")
+        print("#              > 4 DELETE FOOD ITEM             #")
         print("#              > B BACK                          #")
         print("#                                                #")
         print("##################################################")
@@ -132,24 +164,24 @@ def item_menu():
         if selection == "1":
 
             print("Provide new food item information (Type 'D' to discard)")
-            newItemID = input("ID: ")
-            if newItemID.upper() == 'D':
+            new_item_id = input("ID: ")
+            if new_item_id.upper() == 'D':
                 print("Discarding new type")
                 continue
-            newItemName = input("Name: ")
-            if newItemName.upper() == 'D':
+            new_item_name = input("Name: ")
+            if new_item_name.upper() == 'D':
                 print("Discarding new type")
                 continue
-            newItemTypeKey = input("Type Key (ID): ")
-            if newItemTypeKey.upper() == 'D':
+            new_item_type_key = input("Type Key (ID): ")
+            if new_item_type_key.upper() == 'D':
                 print("Discarding new type")
                 continue
 
-            success = client.service.createItem(newItemID, newItemName, newItemTypeKey)
+            success = client.service.createItem(new_item_id, new_item_name, new_item_type_key)
             if success:
-                pass #print("Successfully created new type")
-            else:
-                pass #print("Failed creating new type")
+                print("Successfully created new type")
+            elif not success:
+                print("Failed creating new type")
 
             input("\nPRESS ENTER TO CONTINUE")
 
@@ -164,7 +196,9 @@ def item_menu():
 
         elif selection == "4":
 
-            print("Selected: 4")
+            print("Provide the ID of the item you wish to delete")
+            delete_table_element("item", input("ID: "))
+            input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
             break
@@ -190,20 +224,20 @@ def type_menu():
         if selection == "1":
 
             print("Provide new food type information (Type 'D' to discard)")
-            newTypeId = input("ID: ")
-            if newTypeId.upper() == 'D':
+            new_type_id = input("ID: ")
+            if new_type_id.upper() == 'D':
                 print("Discarding new type")
                 continue
-            newTypeName = input("Name: ")
-            if newTypeName.upper() == 'D':
+            new_type_name = input("Name: ")
+            if new_type_name.upper() == 'D':
                 print("Discarding new type")
                 continue
-            newTypeKeep = input("Keep (d): ")
-            if newTypeKeep.upper() == 'D':
+            new_type_keep = input("Keep (d): ")
+            if new_type_keep.upper() == 'D':
                 print("Discarding new type")
                 continue
 
-            success = client.service.createType(newTypeId, newTypeName, newTypeKeep)
+            success = client.service.createType(new_type_id, new_type_name, new_type_keep)
             if success:
                 print("Successfully created new type")
             else:
@@ -219,42 +253,35 @@ def type_menu():
         elif selection == "3":
 
             print("Provide updated food type information (Type 'D' to discard)")
-            updateTypeID = input("The type's current ID: ")
-            if updateTypeID.upper() == 'D':
+            update_type_id = input("The type's current ID: ")
+            if update_type_id.upper() == 'D':
                 print("Discarding new type")
                 continue
-            updateTypeName = input("New name for the type: ")
-            if updateTypeName.upper() == 'D':
+            update_type_name = input("New name for the type: ")
+            if update_type_name.upper() == 'D':
                 print("Discarding new type")
                 continue
-            updateTypeKeep = input("New keep (d) for the type: ")
-            if updateTypeKeep.upper() == 'D':
+            update_type_keep = input("New keep (d) for the type: ")
+            if update_type_keep.upper() == 'D':
                 print("Discarding new type")
                 continue
-            updateTypeNewID = input("New ID for the type: ")
-            if updateTypeNewID.upper() == 'D':
+            update_type_new_id = input("New ID for the type: ")
+            if update_type_new_id.upper() == 'D':
                 print("Discarding new type")
                 continue
 
-            success = client.service.createType(updateTypeID, updateTypeName, updateTypeKeep, updateTypeNewID)
+            success = client.service.createType(update_type_id, update_type_name, update_type_keep, update_type_new_id)
             if success:
-                pass #print("Successfully created new type")
+                pass  # print("Successfully created new type")
             else:
-                pass #print("Failed creating new type")
+                pass  # print("Failed creating new type")
 
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
 
             print("Provide the ID of the type you wish to delete")
-            delete_id = input("ID: ")
-            success = client.service.deleteType(delete_id)
-
-            if success:
-                print("Successfully deleted type with ID: " + delete_id)
-            else:
-                print("Failed deleting type with ID: " + delete_id)
-
+            delete_table_element("type", input("ID: "))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -279,10 +306,12 @@ def main_menu():
         print("##################################################")
         selection = input("> ")
         if selection == "1":
-            fridge_menu()
+            user_menu()
         elif selection == "2":
-            item_menu()
+            fridge_menu()
         elif selection == "3":
+            item_menu()
+        elif selection == "4":
             type_menu()
         elif selection.upper() == "E":
             exit(0)
