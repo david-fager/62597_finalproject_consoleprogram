@@ -1,11 +1,15 @@
 from zeep import Client
 from prettytable import PrettyTable
+import urllib.request
+import datetime
 
 # Connecting via SOAP (Zeep in python) to the server
 client = None
 wsdl_local = "http://localhost:58008/my_fridge_soap_remote?WSDL"
 wsdl_remote = "http://dist.saluton.dk:58008/my_fridge_soap_remote?WSDL"
-connected_wsdl = None
+website_address = "http://35.178.9.154"
+connection_type = None
+
 while True:
     print("Welcome to the admin terminal.")
     print("Are you connecting to a local or remote host?")
@@ -16,12 +20,9 @@ while True:
             client = Client(wsdl_local)
         except:
             print("Local host connection failed")
-            print("Check if you can connect to the WSDL:")
-            print(wsdl_local)
-            print("Otherwise, check if the database program is running\n")
+            print("Check that you started the database program\n")
         else:
             print("Local host connection successful")
-            connected_wsdl = wsdl_local
             break
 
     elif connection_type.upper() == "REMOTE":
@@ -34,7 +35,6 @@ while True:
             print("Otherwise, it might be a server side error\n")
         else:
             print("Remote host connection successful")
-            connected_wsdl = wsdl_remote
             break
 
     else:
@@ -63,7 +63,6 @@ def assess_success(success, action, table):
 
 def delete_table_element(delete_id, table):
     table = str(table).upper()
-    success = None
     if table == "USER":
         success = client.service.deleteUser(delete_id)
     elif table == "FRIDGE":
@@ -85,7 +84,6 @@ def delete_table_element(delete_id, table):
 def user_menu():
     while True:
         print("")
-        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#              USER MANAGEMENT MENU              #")
@@ -123,7 +121,6 @@ def user_menu():
 def fridge_menu():
     while True:
         print("")
-        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#             FRIDGE MANAGEMENT MENU             #")
@@ -171,7 +168,6 @@ def fridge_menu():
 def item_menu():
     while True:
         print("")
-        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#            FOOD ITEM MANAGEMENT MENU           #")
@@ -248,7 +244,6 @@ def item_menu():
 def type_menu():
     while True:
         print("")
-        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#            FOOD TYPE MANAGEMENT MENU           #")
@@ -324,7 +319,6 @@ def type_menu():
 def main_menu():
     while True:
         print("")
-        print(connected_wsdl)
         print("##################################################")
         print("#                                                #")
         print("#                   ADMIN MENU                   #")
@@ -333,6 +327,7 @@ def main_menu():
         print("#              > 2 MANAGE FRIDGES                #")
         print("#              > 3 MANAGE FOOD ITEMS             #")
         print("#              > 4 MANAGE FOOD TYPES             #")
+        print("#              > 5 CHECK SERVER STATUS           #")
         print("#              > E EXIT                          #")
         print("#                                                #")
         print("##################################################")
@@ -345,6 +340,78 @@ def main_menu():
             item_menu()
         elif selection == "4":
             type_menu()
+        elif selection == "5":
+
+            handler=urllib.request.HTTPHandler(debuglevel=0)
+            opener=urllib.request.build_opener(handler)
+            urllib.request.install_opener(opener)
+
+            # Checking if the database wsdl is up:
+            if connection_type.upper() == "REMOTE":
+                print("############# CHECKING DATABASE WSDL #############")
+                try:
+                    time_start = datetime.datetime.now()
+                    wsdl_running = urllib.request.urlopen(wsdl_remote).getcode() == 200
+                    time_end = datetime.datetime.now()
+                    time_difference = time_end - time_start
+                except:
+                    wsdl_running = False
+
+                if wsdl_running:
+                    print("TRIED URL     - " + wsdl_remote)
+                    print("STATUS        - is running")
+                    print("RESPONSE TIME - " + str(round(time_difference.total_seconds() * 1000, 3)) + "ms")
+                else:
+                    print("TRIED URL     - " + wsdl_remote)
+                    print("STATUS        - NOT running; the server or database program might be down")
+                    print("RESPONSE TIME - N/A")
+                print("")
+
+            # Querying the database to see if it has any problems
+            print("########### TEST QUERYING THE DATABASE ###########")
+            try:
+                time_start = datetime.datetime.now()
+                database_tables = client.service.getTables()
+                time_end = datetime.datetime.now()
+                time_difference = time_end - time_start
+            except:
+                database_tables = None
+
+            if database_tables:
+                print("TRIED METHOD  - getTables()")
+                print("STATUS        - success")
+                print("RESPONSE TIME - " + str(round(time_difference.total_seconds() * 1000, 3)) + "ms")
+            elif str(database_tables) == "[]":
+                print("TRIED METHOD  - getTables()")
+                print("STATUS        - failed; program is responsive, but database queried unsuccessfully")
+                print("RESPONSE TIME - N/A")
+            else:
+                print("TRIED METHOD  - getTables()")
+                print("STATUS        - failed; program is unresponsive, program or server might be down")
+                print("RESPONSE TIME - N/A")
+            print("")
+
+            # Checking if the website is up and running
+            print("################ CHECKING WEBSITE ################")
+            try:
+                time_start = datetime.datetime.now()
+                website_running = urllib.request.urlopen(website_address).getcode() == 200
+                time_end = datetime.datetime.now()
+                time_difference = time_end - time_start
+            except:
+                website_running = False
+
+            if website_running:
+                print("TRIED URL     - " + website_address)
+                print("STATUS        - is running")
+                print("RESPONSE TIME - " + str(round(time_difference.total_seconds() * 1000, 3)) + "ms")
+            else:
+                print("TRIED URL     - " + website_address)
+                print("STATUS        - NOT running; the server or webserver program might be down")
+                print("RESPONSE TIME - N/A")
+
+            input("\nPRESS ENTER TO CONTINUE")
+
         elif selection.upper() == "E":
             exit(0)
         else:
