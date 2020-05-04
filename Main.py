@@ -2,6 +2,7 @@ from zeep import Client
 from prettytable import PrettyTable
 import urllib.request
 import datetime
+import re
 
 # Connecting via SOAP (Zeep in python) to the server
 client = None
@@ -88,11 +89,12 @@ def user_menu():
         print("#                                                #")
         print("#              USER MANAGEMENT MENU              #")
         print("#                                                #")
-        print("#                > 1% ADD USER                   #")
-        print("#                > 2% LIST USERS                 #")
-        print("#                > 3% UPDATE USER                #")
-        print("#                > 4% DELETE USER                #")
-        print("#                > B BACK                        #")
+        print("#          > 1% ADD USER                         #")
+        print("#          > 2% LIST USERS                       #")
+        print("#          > 3% LIST EVERYTHING ON USER          #")
+        print("#          > 4% UPDATE USER                      #")
+        print("#          > 5% DELETE USER                      #")
+        print("#          > B BACK                              #")
         print("#                                                #")
         print("##################################################")
         selection = input("> ")
@@ -125,33 +127,84 @@ def fridge_menu():
         print("#                                                #")
         print("#             FRIDGE MANAGEMENT MENU             #")
         print("#                                                #")
-        print("#              > 1 LIST FRIDGES                  #")
-        print("#              > 2% ADD FRIDGE ITEM              #")
-        print("#              > 3 LIST FRIDGE ITEMS             #")
-        print("#              > 4% UPDATE FRIDGE ITEM           #")
-        print("#              > 5 DELETE FRIDGE ITEM            #")
-        print("#              > B BACK                          #")
+        print("#           > 1 ADD FRIDGE ITEM                  #")
+        print("#           > 2 LIST ONE FRIDGE'S ITEMS          #")
+        print("#           > 3 LIST ALL FRIDGES ITEMS           #")
+        print("#           > 4 UPDATE FRIDGE ITEM               #")
+        print("#           > 5 DELETE FRIDGE ITEM               #")
+        print("#           > B BACK                             #")
         print("#                                                #")
         print("##################################################")
         selection = input("> ")
         if selection == "1":
 
-            tablify_list(client.service.getAllFridgeRows())
+            print("Provide new fridge item information (Type 'D' to discard)")
+            new_fridge_item_fridge_id = input("Fridge ID: ")
+            if new_fridge_item_fridge_id.upper() == 'D':
+                print("Discarding new fridge item")
+                continue
+            new_fridge_item_item_id = input("Item ID: ")
+            if new_fridge_item_item_id.upper() == 'D':
+                print("Discarding new fridge item")
+                continue
+            new_fridge_item_expiration = input("Expiration date (yyyy-MM-dd): ")
+            if new_fridge_item_expiration.upper() == 'D':
+                print("Discarding new fridge item")
+                continue
+            new_fridge_item_amount = input("Item amount: ")
+            if new_fridge_item_amount.upper() == 'D':
+                print("Discarding new fridge item")
+                continue
+
+            assess_success(client.service.createFridgeRow(
+                new_fridge_item_fridge_id, new_fridge_item_item_id, new_fridge_item_expiration, new_fridge_item_amount),
+                "creating new", "fridge item")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
-
-            print("Selected: 2")
-
-        elif selection == "3":
 
             print("Provide the ID of the fridge to list items for")
             tablify_list(client.service.getFridge(input("Fridge ID: ")))
             input("\nPRESS ENTER TO CONTINUE")
 
+        elif selection == "3":
+
+            tablify_list(client.service.getAllFridgeRows())
+            input("\nPRESS ENTER TO CONTINUE")
+
         elif selection == "4":
 
-            print("Selected: 4")
+            print("Provide updated fridge item information (Type 'D' to discard)")
+            current_fridge_item_fridge_id = input("The fridge item's current fridge ID: ")
+            if current_fridge_item_fridge_id.upper() == 'D':
+                print("Discarding fridge item update")
+                continue
+            current_fridge_item_item_id = input("The fridge item's current item id: ")
+            if current_fridge_item_item_id.upper() == 'D':
+                print("Discarding fridge item update")
+                continue
+            updated_fridge_item_fridge_id = input("New fridge ID for the fridge item: ")
+            if updated_fridge_item_fridge_id.upper() == 'D':
+                print("Discarding fridge item update")
+                continue
+            updated_fridge_item_item_id = input("New item ID for the fridge item: ")
+            if updated_fridge_item_item_id.upper() == 'D':
+                print("Discarding fridge item update")
+                continue
+            updated_fridge_item_expiration = input("New expiration date (yyyy-MM-dd) for the fridge item: ")
+            if updated_fridge_item_expiration.upper() == 'D':
+                print("Discarding fridge item update")
+                continue
+            updated_fridge_item_amount = input("New item amount for the fridge item: ")
+            if updated_fridge_item_amount.upper() == 'D':
+                print("Discarding fridge item update")
+                continue
+
+            assess_success(client.service.updateFridgeRow(
+                current_fridge_item_fridge_id, current_fridge_item_item_id, updated_fridge_item_fridge_id,
+                updated_fridge_item_item_id, updated_fridge_item_expiration, updated_fridge_item_amount),
+                "updating", "fridge item")
+            input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "5":
 
@@ -323,12 +376,12 @@ def main_menu():
         print("#                                                #")
         print("#                   ADMIN MENU                   #")
         print("#                                                #")
-        print("#              > 1 MANAGE USERS                  #")
-        print("#              > 2 MANAGE FRIDGES                #")
-        print("#              > 3 MANAGE FOOD ITEMS             #")
-        print("#              > 4 MANAGE FOOD TYPES             #")
-        print("#              > 5 CHECK SERVER STATUS           #")
-        print("#              > E EXIT                          #")
+        print("#             > 1 MANAGE USERS                   #")
+        print("#             > 2 MANAGE FRIDGES                 #")
+        print("#             > 3 MANAGE FOOD ITEMS              #")
+        print("#             > 4 MANAGE FOOD TYPES              #")
+        print("#             > 5 CHECK SERVER STATUS            #")
+        print("#             > E EXIT                           #")
         print("#                                                #")
         print("##################################################")
         selection = input("> ")
@@ -342,9 +395,13 @@ def main_menu():
             type_menu()
         elif selection == "5":
 
-            handler=urllib.request.HTTPHandler(debuglevel=0)
-            opener=urllib.request.build_opener(handler)
-            urllib.request.install_opener(opener)
+            # Ask if user wants debugging info
+            print("Check with debugging on? (y/n)")
+            debug = input("> ")
+            if debug.upper() == "Y":
+                urllib.request.install_opener(urllib.request.build_opener(urllib.request.HTTPHandler(debuglevel=1)))
+            else:
+                urllib.request.install_opener(urllib.request.build_opener(urllib.request.HTTPHandler(debuglevel=0)))
 
             # Checking if the database wsdl is up:
             if connection_type.upper() == "REMOTE":
@@ -370,6 +427,11 @@ def main_menu():
             # Querying the database to see if it has any problems
             print("########### TEST QUERYING THE DATABASE ###########")
             try:
+                if debug.upper() == "Y":
+                    with client.settings(raw_response=True):
+                        database_tables = client.service.getTables()
+                        print(str(database_tables) + " " + str(database_tables.content))
+
                 time_start = datetime.datetime.now()
                 database_tables = client.service.getTables()
                 time_end = datetime.datetime.now()
@@ -381,6 +443,15 @@ def main_menu():
                 print("TRIED METHOD  - getTables()")
                 print("STATUS        - success")
                 print("RESPONSE TIME - " + str(round(time_difference.total_seconds() * 1000, 3)) + "ms")
+                print("")
+
+                # Printing database tables layout
+                print("################# DATABASE TABLE #################")
+                pt = PrettyTable(database_tables[0].item)
+                pt.align[str(database_tables[0].item[1])] = "l"
+                for element in database_tables[1:]:
+                    pt.add_row(element.item)
+                print(pt)
             elif str(database_tables) == "[]":
                 print("TRIED METHOD  - getTables()")
                 print("STATUS        - failed; program is responsive, but database queried unsuccessfully")
