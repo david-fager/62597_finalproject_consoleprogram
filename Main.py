@@ -91,8 +91,8 @@ def user_menu():
 
         elif selection == "2":
 
-            print("Provide the ID of the user to list")
-            username = input("User ID: ")
+            print("Provide the username of the user to list")
+            username = input("Username: ")
             tablify_list(client.service.getUser(username))
             input("\nPRESS ENTER TO CONTINUE")
 
@@ -103,28 +103,28 @@ def user_menu():
 
         elif selection == "4":
 
-            print("Provide the ID of the user to list everything on")
-            username = input("User ID: ")
+            print("Provide the username of the user to list everything on")
+            username = input("Username: ")
             tablify_list(client.service.getCompleteUser(username))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "5":
 
             print("Provide updated user information (Type 'D' to discard)")
-            current_user_id = input("Current user ID: ")
-            if current_user_id.upper() == 'D':
+            current_username = input("Current username: ")
+            if current_username.upper() == 'D':
                 print("Discarding user update")
                 continue
             updated_user_fridge_id = input("New fridge ID for the user: ")
             if updated_user_fridge_id.upper() == 'D':
                 print("Discarding user update")
                 continue
-            updated_user_id = input("New user ID for the user: ")
-            if updated_user_id.upper() == 'D':
+            updated_username = input("New username for the user: ")
+            if updated_username.upper() == 'D':
                 print("Discarding user update")
                 continue
 
-            print_assessment(client.service.updateUser(current_user_id, updated_user_fridge_id, updated_user_id),
+            print_assessment(client.service.updateUser(current_username, updated_user_fridge_id, updated_username),
                              "updating user")
             input("\nPRESS ENTER TO CONTINUE")
 
