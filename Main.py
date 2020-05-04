@@ -61,26 +61,6 @@ def print_assessment(success, action):
         print("Server sent no response on action")
 
 
-def delete_table_element(delete_id, table):
-    table = str(table).upper()
-    if table == "USER":
-        success = client.service.deleteUser(delete_id)
-    elif table == "FRIDGE":
-        success = client.service.deleteFridge(delete_id)
-    elif table == "ITEM":
-        success = client.service.deleteItem(delete_id)
-    elif table == "TYPE":
-        success = client.service.deleteType(delete_id)
-    else:
-        print("Unrecognized table")
-        return
-
-    if success:
-        print("Successfully deleted " + table + " with ID: " + delete_id)
-    elif not success:
-        print("Failed deleting item with ID: " + delete_id)
-
-
 def user_menu():
     while True:
         print("")
@@ -101,7 +81,7 @@ def user_menu():
         if selection == "1":
 
             print("Provide new user information (Type 'D' to discard)")
-            new_user_id = input("User ID: ")
+            new_user_id = input("Username: ")
             if new_user_id.upper() == 'D':
                 print("Discarding new user")
                 continue
@@ -112,8 +92,8 @@ def user_menu():
         elif selection == "2":
 
             print("Provide the ID of the user to list")
-            user_id = input("User ID: ")
-            tablify_list(client.service.getUser(user_id))
+            username = input("User ID: ")
+            tablify_list(client.service.getUser(username))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
@@ -124,8 +104,8 @@ def user_menu():
         elif selection == "4":
 
             print("Provide the ID of the user to list everything on")
-            user_id = input("User ID: ")
-            tablify_list(client.service.getEverythingOnUser(user_id))
+            username = input("User ID: ")
+            tablify_list(client.service.getCompleteUser(username))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "5":
@@ -150,8 +130,9 @@ def user_menu():
 
         elif selection == "6":
 
-            print("Provide the ID of the user you wish to delete")
-            delete_table_element(input("ID: "), "user")
+            print("Provide the username of the user you wish to delete")
+            username = input("Username: ")
+            print_assessment(client.service.deleteUser(username), str("deleting user with username " + username))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -248,8 +229,12 @@ def fridge_menu():
 
         elif selection == "5":
 
-            print("Provide the ID of the fridge you wish to delete")
-            delete_table_element(input("ID: "), "fridge")
+            print("Provide the fridge ID and item ID of the fridge item you wish to delete")
+            delete_fridge_id = input("Fridge ID: ")
+            delete_fridge_item_id = input("Item ID: ")
+            print_assessment(client.service.deleteFridgeRow(delete_fridge_id, delete_fridge_item_id),
+                             str("deleting fridge item with fridge ID " + delete_fridge_id +
+                                 " item ID " + delete_fridge_item_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -325,7 +310,8 @@ def item_menu():
         elif selection == "4":
 
             print("Provide the ID of the item you wish to delete")
-            delete_table_element(input("ID: "), "item")
+            delete_item_id = input("Item ID: ")
+            print_assessment(client.service.deleteItem(delete_item_id), str("deleting item with ID " + delete_item_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -400,7 +386,8 @@ def type_menu():
         elif selection == "4":
 
             print("Provide the ID of the type you wish to delete")
-            delete_table_element(input("ID: "), "type")
+            delete_type_id = input("Type ID: ")
+            print_assessment(client.service.deleteItem(delete_type_id), str("deleting type with ID " + delete_type_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -490,6 +477,7 @@ def main_menu():
                 # Printing database tables layout
                 print("################# DATABASE TABLE #################")
                 pt = PrettyTable(database_tables[0].item)
+                pt.align[str(database_tables[0].item[0])] = "r"
                 pt.align[str(database_tables[0].item[1])] = "l"
                 for element in database_tables[1:]:
                     pt.add_row(element.item)
