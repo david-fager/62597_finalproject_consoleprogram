@@ -2,7 +2,6 @@ from zeep import Client
 from prettytable import PrettyTable
 import urllib.request
 import datetime
-import re
 
 # Connecting via SOAP (Zeep in python) to the server
 client = None
@@ -53,11 +52,11 @@ def tablify_list(list):
     print(pt)
 
 
-def assess_success(success, action, table):
+def print_assessment(success, action):
     if success:
-        print("Success " + action + " " + table)
+        print("Success " + action)
     elif not success:
-        print("Fail " + action + " " + table)
+        print("Fail " + action)
     else:
         print("Server sent no response on action")
 
@@ -89,30 +88,71 @@ def user_menu():
         print("#                                                #")
         print("#              USER MANAGEMENT MENU              #")
         print("#                                                #")
-        print("#          > 1% ADD USER                         #")
-        print("#          > 2% LIST USERS                       #")
-        print("#          > 3% LIST EVERYTHING ON USER          #")
-        print("#          > 4% UPDATE USER                      #")
-        print("#          > 5% DELETE USER                      #")
+        print("#          > 1 ADD USER                          #")
+        print("#          > 2 LIST USER                         #")
+        print("#          > 3 LIST USERS                        #")
+        print("#          > 4 LIST EVERYTHING ON USER           #")
+        print("#          > 5 UPDATE USER                       #")
+        print("#          > 6 DELETE USER                       #")
         print("#          > B BACK                              #")
         print("#                                                #")
         print("##################################################")
         selection = input("> ")
         if selection == "1":
 
-            print("Selected: 1")
+            print("Provide new user information (Type 'D' to discard)")
+            new_user_id = input("User ID: ")
+            if new_user_id.upper() == 'D':
+                print("Discarding new user")
+                continue
+
+            print_assessment(client.service.createUser(new_user_id), "creating new user")
+            input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
 
-            print("Selected: 2")
+            print("Provide the ID of the user to list")
+            user_id = input("User ID: ")
+            tablify_list(client.service.getUser(user_id))
+            input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
 
-            print("Selected: 3")
+            tablify_list(client.service.getUsers())
+            input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
 
-            print("Selected: 4")
+            print("Provide the ID of the user to list everything on")
+            user_id = input("User ID: ")
+            tablify_list(client.service.getEverythingOnUser(user_id))
+            input("\nPRESS ENTER TO CONTINUE")
+
+        elif selection == "5":
+
+            print("Provide updated user information (Type 'D' to discard)")
+            current_user_id = input("Current user ID: ")
+            if current_user_id.upper() == 'D':
+                print("Discarding user update")
+                continue
+            updated_user_fridge_id = input("New fridge ID for the user: ")
+            if updated_user_fridge_id.upper() == 'D':
+                print("Discarding user update")
+                continue
+            updated_user_id = input("New user ID for the user: ")
+            if updated_user_id.upper() == 'D':
+                print("Discarding user update")
+                continue
+
+            print_assessment(client.service.updateUser(current_user_id, updated_user_fridge_id, updated_user_id),
+                             "updating user")
+            input("\nPRESS ENTER TO CONTINUE")
+
+        elif selection == "6":
+
+            print("Provide the ID of the user you wish to delete")
+            delete_table_element(input("ID: "), "user")
+            input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
             break
@@ -156,9 +196,9 @@ def fridge_menu():
                 print("Discarding new fridge item")
                 continue
 
-            assess_success(client.service.createFridgeRow(
+            print_assessment(client.service.createFridgeRow(
                 new_fridge_item_fridge_id, new_fridge_item_item_id, new_fridge_item_expiration, new_fridge_item_amount),
-                "creating new", "fridge item")
+                "creating new fridge item")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
@@ -200,10 +240,10 @@ def fridge_menu():
                 print("Discarding fridge item update")
                 continue
 
-            assess_success(client.service.updateFridgeRow(
+            print_assessment(client.service.updateFridgeRow(
                 current_fridge_item_fridge_id, current_fridge_item_item_id, updated_fridge_item_fridge_id,
                 updated_fridge_item_item_id, updated_fridge_item_expiration, updated_fridge_item_amount),
-                "updating", "fridge item")
+                "updating fridge item")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "5":
@@ -249,8 +289,8 @@ def item_menu():
                 print("Discarding new item")
                 continue
 
-            assess_success(client.service.createItem(new_item_id, new_item_name, new_item_type_key),
-                           "creating new", "item")
+            print_assessment(client.service.createItem(new_item_id, new_item_name, new_item_type_key),
+                             "creating new item")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
@@ -278,8 +318,8 @@ def item_menu():
                 print("Discarding item update")
                 continue
 
-            assess_success(client.service.updateItem(update_item_id, update_item_name, update_type_id,
-                                                     update_item_new_id), "updating", "item")
+            print_assessment(client.service.updateItem(update_item_id, update_item_name, update_type_id,
+                                                       update_item_new_id), "updating item")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
@@ -325,7 +365,7 @@ def type_menu():
                 print("Discarding new type")
                 continue
 
-            assess_success(client.service.createType(new_type_id, new_type_name, new_type_keep), "creating new", "type")
+            print_assessment(client.service.createType(new_type_id, new_type_name, new_type_keep), "creating new type")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
@@ -353,8 +393,8 @@ def type_menu():
                 print("Discarding type update")
                 continue
 
-            assess_success(client.service.createType(update_type_id, update_type_name, update_type_keep,
-                                                     update_type_new_id), "updating", "type")
+            print_assessment(client.service.createType(update_type_id, update_type_name, update_type_keep,
+                                                       update_type_new_id), "updating type")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
@@ -394,6 +434,8 @@ def main_menu():
         elif selection == "4":
             type_menu()
         elif selection == "5":
+
+            time_difference = 0  # assignment here to prevent errors
 
             # Ask if user wants debugging info
             print("Check with debugging on? (y/n)")
