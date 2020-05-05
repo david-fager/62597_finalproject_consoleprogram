@@ -132,6 +132,9 @@ def user_menu():
 
             print("Provide the username of the user you wish to delete")
             username = input("Username: ")
+            if username.upper() == 'D':
+                print("Discarding user deletion")
+                continue
             print_assessment(client.service.deleteUser(username), str("deleting user with username " + username))
             input("\nPRESS ENTER TO CONTINUE")
 
@@ -231,7 +234,13 @@ def fridge_menu():
 
             print("Provide the fridge ID and item ID of the fridge item you wish to delete")
             delete_fridge_id = input("Fridge ID: ")
+            if delete_fridge_id.upper() == 'D':
+                print("Discarding fridge item deletion")
+                continue
             delete_fridge_item_id = input("Item ID: ")
+            if delete_fridge_item_id.upper() == 'D':
+                print("Discarding fridge item deletion")
+                continue
             print_assessment(client.service.deleteFridgeRow(delete_fridge_id, delete_fridge_item_id),
                              str("deleting fridge item with fridge ID " + delete_fridge_id +
                                  " item ID " + delete_fridge_item_id))
@@ -261,20 +270,16 @@ def item_menu():
         if selection == "1":
 
             print("Provide new food item information (Type 'D' to discard)")
-            new_item_id = input("ID: ")
-            if new_item_id.upper() == 'D':
-                print("Discarding new item")
-                continue
             new_item_name = input("Name: ")
             if new_item_name.upper() == 'D':
                 print("Discarding new item")
                 continue
-            new_item_type_key = input("Type Key (ID): ")
+            new_item_type_key = input("Type ID: ")
             if new_item_type_key.upper() == 'D':
                 print("Discarding new item")
                 continue
 
-            print_assessment(client.service.createItem(new_item_id, new_item_name, new_item_type_key),
+            print_assessment(client.service.createItem(new_item_name, new_item_type_key),
                              "creating new item")
             input("\nPRESS ENTER TO CONTINUE")
 
@@ -311,6 +316,9 @@ def item_menu():
 
             print("Provide the ID of the item you wish to delete")
             delete_item_id = input("Item ID: ")
+            if delete_item_id.upper() == 'D':
+                print("Discarding item deletion")
+                continue
             print_assessment(client.service.deleteItem(delete_item_id), str("deleting item with ID " + delete_item_id))
             input("\nPRESS ENTER TO CONTINUE")
 
@@ -338,10 +346,6 @@ def type_menu():
         if selection == "1":
 
             print("Provide new food type information (Type 'D' to discard)")
-            new_type_id = input("ID: ")
-            if new_type_id.upper() == 'D':
-                print("Discarding new type")
-                continue
             new_type_name = input("Name: ")
             if new_type_name.upper() == 'D':
                 print("Discarding new type")
@@ -351,7 +355,7 @@ def type_menu():
                 print("Discarding new type")
                 continue
 
-            print_assessment(client.service.createType(new_type_id, new_type_name, new_type_keep), "creating new type")
+            print_assessment(client.service.createType(new_type_name, new_type_keep), "creating new type")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
@@ -379,7 +383,7 @@ def type_menu():
                 print("Discarding type update")
                 continue
 
-            print_assessment(client.service.createType(update_type_id, update_type_name, update_type_keep,
+            print_assessment(client.service.updateType(update_type_id, update_type_name, update_type_keep,
                                                        update_type_new_id), "updating type")
             input("\nPRESS ENTER TO CONTINUE")
 
@@ -387,7 +391,10 @@ def type_menu():
 
             print("Provide the ID of the type you wish to delete")
             delete_type_id = input("Type ID: ")
-            print_assessment(client.service.deleteItem(delete_type_id), str("deleting type with ID " + delete_type_id))
+            if delete_type_id.upper() == 'D':
+                print("Discarding type deletion")
+                continue
+            print_assessment(client.service.deleteType(delete_type_id), str("deleting type with ID " + delete_type_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
