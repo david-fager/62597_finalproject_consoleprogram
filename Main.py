@@ -41,6 +41,13 @@ while True:
         print("Unrecognized input\n")
 
 
+def login():
+    print("")
+    print("Login is required to use the system")
+    print("Got UUID: " + client.service.adminLogin(input("Username: "), input("Password: ")))
+    main_menu()
+
+
 def tablify_list(list):
     if str(list) == "[]" or str(list) == "":
         print("Table is empty. See: " + str(list))
@@ -466,7 +473,7 @@ def main_menu():
                 if debug.upper() == "Y":
                     with client.settings(raw_response=True):
                         database_tables = client.service.getTables()
-                        print(str(database_tables) + " " + str(database_tables.content))
+                        print(str(database_tables.content) + "\n" + str(database_tables))
 
                 time_start = datetime.datetime.now()
                 database_tables = client.service.getTables()
@@ -526,4 +533,4 @@ def main_menu():
             print("Unrecognized input.")
 
 
-main_menu()  # The call starting this program
+login()  # The call starting this program
