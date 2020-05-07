@@ -3,13 +3,15 @@ from prettytable import PrettyTable
 import urllib.request
 import datetime
 
+
 # Global variables
 client = None
 wsdl_local = "http://localhost:58008/my_fridge_soap_remote?WSDL"
 wsdl_remote = "http://dist.saluton.dk:58008/my_fridge_soap_remote?WSDL"
 website_address = "http://35.178.9.154"
 connection_type = None
-uuid = ""
+uuid = None
+
 
 # Connecting to the database program via zeep (SOAP)
 while True:
@@ -42,11 +44,26 @@ while True:
     else:
         print("Unrecognized input\n")
 
+
 # Logging into the system and getting a UUID
-while uuid == "":
+def login():
+    global uuid
     print("")
     print("Login is required to use the system")
-    uuid = client.service.adminLogin(input("Username: "), input("Password: "))
+    uuid = inspect(client.service.adminLogin(input("Username: "), input("Password: ")))
+    while uuid is None:
+        print("")
+        print("Wrong username or password. Try again")
+        uuid = inspect(client.service.adminLogin(input("Username: "), input("Password: ")))
+
+
+def re_login():
+    global uuid
+    uuid = None
+    while uuid is None:
+        print("")
+        print("A re-login is required")
+        uuid = inspect(client.service.adminLogin(input("Username: "), input("Password: ")))
 
 
 def tablify_list(list):
@@ -60,13 +77,35 @@ def tablify_list(list):
     print(pt)
 
 
-def print_assessment(success, action):
-    if success:
-        print("Success " + action)
-    elif not success:
-        print("Fail " + action)
+def inspect(response):
+    # Returns string if found
+    if response.responseString is not None:
+        return response.responseString
+
+    if len(response.responseStringArray) != 0:
+        return response.responseStringArray
+
+    if len(response.responseArraylist) != 0:
+        return response.responseArraylist
+
+    # Handling the status code
+    if response.statusCode == 0:
+        print(response.statusMessage)
+    elif response.statusCode == 1:
+        print(response.statusMessage)
+    elif response.statusCode == 2:
+        print("Server threw exception: " + str(response.statusMessage))
+        return
+    elif response.statusCode == 3:
+        print("Server returned: " + str(response.statusMessage))
+        return
+    elif response.statusCode == 4:
+        print("Server returned: " + str(response.statusMessage))
+        re_login()
+        return
     else:
-        print("Server sent no response on action")
+        print("Unknown error: " + str(response.statusMessage))
+        return
 
 
 def user_menu():
@@ -94,26 +133,26 @@ def user_menu():
                 print("Discarding new user")
                 continue
 
-            print_assessment(client.service.createUser(uuid, new_user_id), "creating new user")
+            inspect(client.service.createUser(uuid, new_user_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
 
             print("Provide the username of the user to list")
             username = input("Username: ")
-            tablify_list(client.service.getUser(uuid, username))
+            tablify_list(inspect(client.service.getUser(uuid, username)))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
 
-            tablify_list(client.service.getUsers(uuid))
+            tablify_list(inspect(client.service.getUsers(uuid)))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
 
             print("Provide the username of the user to list everything on")
             username = input("Username: ")
-            tablify_list(client.service.getCompleteUser(uuid, username))
+            tablify_list(inspect(client.service.getCompleteUser(uuid, username)))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "5":
@@ -132,9 +171,8 @@ def user_menu():
                 print("Discarding user update")
                 continue
 
-            print_assessment(
-                client.service.updateUser(uuid, current_username, updated_user_fridge_id, updated_username),
-                "updating user")
+            inspect(
+                client.service.updateUser(uuid, current_username, updated_user_fridge_id, updated_username))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "6":
@@ -144,7 +182,7 @@ def user_menu():
             if username.upper() == 'D':
                 print("Discarding user deletion")
                 continue
-            print_assessment(client.service.deleteUser(uuid, username), str("deleting user with username " + username))
+            inspect(client.service.deleteUser(uuid, username))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -189,20 +227,20 @@ def fridge_menu():
                 print("Discarding new fridge item")
                 continue
 
-            print_assessment(client.service.createFridgeRow(
+            inspect(client.service.createFridgeRow(
                 uuid, new_fridge_item_fridge_id, new_fridge_item_item_id, new_fridge_item_expiration,
-                new_fridge_item_amount), "creating new fridge item")
+                new_fridge_item_amount))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
 
             print("Provide the ID of the fridge to list items for")
-            tablify_list(client.service.getFridge(uuid, input("Fridge ID: ")))
+            tablify_list(inspect(client.service.getFridge(uuid, input("Fridge ID: "))))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
 
-            tablify_list(client.service.getAllFridgeRows(uuid))
+            tablify_list(inspect(client.service.getAllFridgeRows(uuid)))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
@@ -233,10 +271,9 @@ def fridge_menu():
                 print("Discarding fridge item update")
                 continue
 
-            print_assessment(client.service.updateFridgeRow(
+            inspect(client.service.updateFridgeRow(
                 uuid, current_fridge_item_fridge_id, current_fridge_item_item_id, updated_fridge_item_fridge_id,
-                updated_fridge_item_item_id, updated_fridge_item_expiration, updated_fridge_item_amount),
-                "updating fridge item")
+                updated_fridge_item_item_id, updated_fridge_item_expiration, updated_fridge_item_amount))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "5":
@@ -250,9 +287,7 @@ def fridge_menu():
             if delete_fridge_item_id.upper() == 'D':
                 print("Discarding fridge item deletion")
                 continue
-            print_assessment(client.service.deleteFridgeRow(uuid, delete_fridge_id, delete_fridge_item_id),
-                             str("deleting fridge item with fridge ID " + delete_fridge_id +
-                                 " item ID " + delete_fridge_item_id))
+            inspect(client.service.deleteFridgeRow(uuid, delete_fridge_id, delete_fridge_item_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -288,13 +323,12 @@ def item_menu():
                 print("Discarding new item")
                 continue
 
-            print_assessment(client.service.createItem(uuid, new_item_name, new_item_type_key),
-                             "creating new item")
+            inspect(client.service.createItem(uuid, new_item_name, new_item_type_key))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
 
-            tablify_list(client.service.getItems(uuid))
+            tablify_list(inspect(client.service.getItems(uuid)))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
@@ -317,8 +351,8 @@ def item_menu():
                 print("Discarding item update")
                 continue
 
-            print_assessment(client.service.updateItem(uuid, update_item_id, update_item_name, update_type_id,
-                                                       update_item_new_id), "updating item")
+            inspect(client.service.updateItem(
+                uuid, update_item_id, update_item_name, update_type_id, update_item_new_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
@@ -328,8 +362,7 @@ def item_menu():
             if delete_item_id.upper() == 'D':
                 print("Discarding item deletion")
                 continue
-            print_assessment(client.service.deleteItem(
-                uuid, delete_item_id), str("deleting item with ID " + delete_item_id))
+            inspect(client.service.deleteItem(uuid, delete_item_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -365,12 +398,12 @@ def type_menu():
                 print("Discarding new type")
                 continue
 
-            print_assessment(client.service.createType(uuid, new_type_name, new_type_keep), "creating new type")
+            inspect(client.service.createType(uuid, new_type_name, new_type_keep))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
 
-            tablify_list(client.service.getTypes(uuid))
+            tablify_list(inspect(client.service.getTypes(uuid)))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
@@ -393,8 +426,8 @@ def type_menu():
                 print("Discarding type update")
                 continue
 
-            print_assessment(client.service.updateType(uuid, update_type_id, update_type_name, update_type_keep,
-                                                       update_type_new_id), "updating type")
+            inspect(client.service.updateType(
+                uuid, update_type_id, update_type_name, update_type_keep, update_type_new_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
@@ -404,7 +437,7 @@ def type_menu():
             if delete_type_id.upper() == 'D':
                 print("Discarding type deletion")
                 continue
-            print_assessment(client.service.deleteType(uuid, delete_type_id), str("deleting type with ID " + delete_type_id))
+            inspect(client.service.deleteType(uuid, delete_type_id))
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -479,7 +512,11 @@ def main_menu():
                         print(str(database_tables.content) + "\n" + str(database_tables))
 
                 time_start = datetime.datetime.now()
-                database_tables = client.service.getTables(uuid)
+                res = client.service.getTables(uuid)
+                if res.statusCode > 1:
+                    inspect(res)
+                    continue
+                database_tables = inspect(res)
                 time_end = datetime.datetime.now()
                 time_difference = time_end - time_start
             except:
@@ -536,4 +573,6 @@ def main_menu():
             print("Unrecognized input.")
 
 
-main_menu()  # The call starting this program
+# Starting the program:
+login()
+main_menu()
