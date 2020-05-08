@@ -50,11 +50,11 @@ def login():
     global uuid
     print("")
     print("Login is required to use the system")
-    uuid = inspect(client.service.adminLogin(input("Username: "), input("Password: ")))
+    uuid = inspect(client.service.login(input("Username: "), input("Password: ")))
     while uuid is None:
         print("")
         print("Wrong username or password. Try again")
-        uuid = inspect(client.service.adminLogin(input("Username: "), input("Password: ")))
+        uuid = inspect(client.service.login(input("Username: "), input("Password: ")))
 
 
 def re_login():
@@ -63,7 +63,7 @@ def re_login():
     while uuid is None:
         print("")
         print("A re-login is required")
-        uuid = inspect(client.service.adminLogin(input("Username: "), input("Password: ")))
+        uuid = inspect(client.service.login(input("Username: "), input("Password: ")))
 
 
 def tablify_list(list):
