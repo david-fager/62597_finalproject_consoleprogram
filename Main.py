@@ -50,11 +50,17 @@ def login():
     global uuid
     print("")
     print("Login is required to use the system")
-    uuid = inspect(client.service.login(input("Username: "), input("Password: ")))
+    try:
+        uuid = inspect(client.service.login(input("Username: "), input("Password: ")))
+    except:
+        print("An error occurred while calling the database program")
     while uuid is None:
         print("")
         print("Wrong username or password. Try again")
-        uuid = inspect(client.service.login(input("Username: "), input("Password: ")))
+        try:
+            uuid = inspect(client.service.login(input("Username: "), input("Password: ")))
+        except:
+            print("An error occurred while calling the database program")
 
 
 def re_login():
@@ -63,7 +69,10 @@ def re_login():
     while uuid is None:
         print("")
         print("A re-login is required")
-        uuid = inspect(client.service.login(input("Username: "), input("Password: ")))
+        try:
+            uuid = inspect(client.service.login(input("Username: "), input("Password: ")))
+        except:
+            print("An error occurred while calling the database program")
 
 
 def tablify_list(list):
@@ -133,26 +142,38 @@ def user_menu():
                 print("Discarding new user")
                 continue
 
-            inspect(client.service.createUser(uuid, new_user_id))
+            try:
+                inspect(client.service.createUser(uuid, new_user_id))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
 
             print("Provide the username of the user to list")
             username = input("Username: ")
-            tablify_list(inspect(client.service.getUser(uuid, username)))
+            try:
+                tablify_list(inspect(client.service.getUser(uuid, username)))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
 
-            tablify_list(inspect(client.service.getUsers(uuid)))
+            try:
+                tablify_list(inspect(client.service.getUsers(uuid)))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
 
             print("Provide the username of the user to list everything on")
             username = input("Username: ")
-            tablify_list(inspect(client.service.getCompleteUser(uuid, username)))
+            try:
+                tablify_list(inspect(client.service.getCompleteUser(uuid, username)))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "5":
@@ -171,8 +192,11 @@ def user_menu():
                 print("Discarding user update")
                 continue
 
-            inspect(
-                client.service.updateUser(uuid, current_username, updated_user_fridge_id, updated_username))
+            try:
+                inspect(
+                    client.service.updateUser(uuid, current_username, updated_user_fridge_id, updated_username))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "6":
@@ -182,7 +206,10 @@ def user_menu():
             if username.upper() == 'D':
                 print("Discarding user deletion")
                 continue
-            inspect(client.service.deleteUser(uuid, username))
+            try:
+                inspect(client.service.deleteUser(uuid, username))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -227,20 +254,29 @@ def fridge_menu():
                 print("Discarding new fridge item")
                 continue
 
-            inspect(client.service.createFridgeRow(
-                uuid, new_fridge_item_fridge_id, new_fridge_item_item_id, new_fridge_item_expiration,
-                new_fridge_item_amount))
+            try:
+                inspect(client.service.createFridgeRow(
+                    uuid, new_fridge_item_fridge_id, new_fridge_item_item_id, new_fridge_item_expiration,
+                    new_fridge_item_amount))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
 
             print("Provide the ID of the fridge to list items for")
-            tablify_list(inspect(client.service.getFridge(uuid, input("Fridge ID: "))))
+            try:
+                tablify_list(inspect(client.service.getFridge(uuid, input("Fridge ID: "))))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
 
-            tablify_list(inspect(client.service.getAllFridgeRows(uuid)))
+            try:
+                tablify_list(inspect(client.service.getAllFridgeRows(uuid)))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
@@ -271,9 +307,12 @@ def fridge_menu():
                 print("Discarding fridge item update")
                 continue
 
-            inspect(client.service.updateFridgeRow(
-                uuid, current_fridge_item_fridge_id, current_fridge_item_item_id, updated_fridge_item_fridge_id,
-                updated_fridge_item_item_id, updated_fridge_item_expiration, updated_fridge_item_amount))
+            try:
+                inspect(client.service.updateFridgeRow(
+                    uuid, current_fridge_item_fridge_id, current_fridge_item_item_id, updated_fridge_item_fridge_id,
+                    updated_fridge_item_item_id, updated_fridge_item_expiration, updated_fridge_item_amount))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "5":
@@ -287,7 +326,11 @@ def fridge_menu():
             if delete_fridge_item_id.upper() == 'D':
                 print("Discarding fridge item deletion")
                 continue
-            inspect(client.service.deleteFridgeRow(uuid, delete_fridge_id, delete_fridge_item_id))
+            
+            try:
+                inspect(client.service.deleteFridgeRow(uuid, delete_fridge_id, delete_fridge_item_id))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -323,12 +366,18 @@ def item_menu():
                 print("Discarding new item")
                 continue
 
-            inspect(client.service.createItem(uuid, new_item_name, new_item_type_key))
+            try:
+                inspect(client.service.createItem(uuid, new_item_name, new_item_type_key))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
 
-            tablify_list(inspect(client.service.getItems(uuid)))
+            try:
+                tablify_list(inspect(client.service.getItems(uuid)))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
@@ -351,8 +400,11 @@ def item_menu():
                 print("Discarding item update")
                 continue
 
-            inspect(client.service.updateItem(
-                uuid, update_item_id, update_item_name, update_type_id, update_item_new_id))
+            try:
+                inspect(client.service.updateItem(
+                    uuid, update_item_id, update_item_name, update_type_id, update_item_new_id))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
@@ -362,7 +414,11 @@ def item_menu():
             if delete_item_id.upper() == 'D':
                 print("Discarding item deletion")
                 continue
-            inspect(client.service.deleteItem(uuid, delete_item_id))
+                
+            try:
+                inspect(client.service.deleteItem(uuid, delete_item_id))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
@@ -397,13 +453,19 @@ def type_menu():
             if new_type_keep.upper() == 'D':
                 print("Discarding new type")
                 continue
-
-            inspect(client.service.createType(uuid, new_type_name, new_type_keep))
+    
+            try:
+                inspect(client.service.createType(uuid, new_type_name, new_type_keep))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "2":
 
-            tablify_list(inspect(client.service.getTypes(uuid)))
+            try:
+                tablify_list(inspect(client.service.getTypes(uuid)))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "3":
@@ -426,8 +488,11 @@ def type_menu():
                 print("Discarding type update")
                 continue
 
-            inspect(client.service.updateType(
-                uuid, update_type_id, update_type_name, update_type_keep, update_type_new_id))
+            try:
+                inspect(client.service.updateType(
+                    uuid, update_type_id, update_type_name, update_type_keep, update_type_new_id))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection == "4":
@@ -437,7 +502,11 @@ def type_menu():
             if delete_type_id.upper() == 'D':
                 print("Discarding type deletion")
                 continue
-            inspect(client.service.deleteType(uuid, delete_type_id))
+            
+            try:
+                inspect(client.service.deleteType(uuid, delete_type_id))
+            except:
+                print("An error occurred while calling the database program")
             input("\nPRESS ENTER TO CONTINUE")
 
         elif selection.upper() == "B":
