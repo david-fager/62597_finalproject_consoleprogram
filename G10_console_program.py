@@ -8,7 +8,7 @@ import datetime
 client = None
 wsdl_local = "http://localhost:58008/my_fridge_soap_remote?WSDL"
 wsdl_remote = "http://dist.saluton.dk:58008/my_fridge_soap_remote?WSDL"
-website_address = "http://35.178.9.154"
+website_address = "http://13.49.70.59"
 connection_type = None
 uuid = None
 
